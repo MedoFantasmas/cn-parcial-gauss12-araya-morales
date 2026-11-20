@@ -1,1 +1,29 @@
-# r y su norma infinito
+VERIFICACION NUMERICA DEL SISTEMA
+========================================
+
+RESIDUO INICIAL
+Norma infinito: 6.9849193096160889e-10
+
+RESIDUO EN PRECISION EXTENDIDA
+Norma infinito: 1.1641532182693481e-09
+
+REFINAMIENTO ITERATIVO
+Iteracion 1: residuo = 1.1641532182693481e-09, correccion = 5.2216973946028733e-13
+Iteracion 2: residuo = 4.6566128730773926e-10, correccion = 1.9360847791336675e-15
+Iteracion 3: residuo = 1.1641532182693481e-10, correccion = 3.4519463002905558e-13
+Iteracion 4: residuo = 1.1641532182693481e-10, correccion = 3.1290968330291889e-13
+Iteracion 5: residuo = 1.1641532182693481e-10, correccion = 8.1887312177342919e-16
+
+RESULTADO FINAL
+Residuo refinado: 4.6566128730773926e-10
+Reduccion del residuo: 2.500000
+Error relativo refinado: 4.021948416720605e-14
+
+CONDICIONAMIENTO
+Numero de condicion infinito: 5.3678271204493359e+13
+Error hacia atras: 2.1879413863998272e-17
+Cota de error hacia adelante: 1.1744491111870513e-03
+
+COMPARACION CON NUMPY
+Diferencia maxima: 9.8965280415086454e-13
+Error relativo NumPy: 3.075017993903409e-13

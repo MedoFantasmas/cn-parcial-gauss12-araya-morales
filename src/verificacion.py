@@ -1,5 +1,7 @@
 import numpy as np
+import csv
 
+from mpmath import mp
 from decimal import Decimal, localcontext
 
 def calcular_residuo_extendido(A, b, x):
@@ -70,3 +72,37 @@ def error_hacia_atras(A, b, x, norma_residuo):
     if denominador == 0:
         return 0.0 if norma_residuo == 0 else np.inf
     return float(norma_residuo) / denominador
+
+
+def solucion_alta_precision(ruta_a, ruta_b):
+    mp.dps = 80
+
+    # Leer matriz A conservando los decimales originales
+    with open(ruta_a, "r", encoding="utf-8-sig") as archivo:
+        lector = csv.reader(archivo)
+        next(lector)
+
+        datos_a = [
+            [mp.mpf(valor.strip()) for valor in fila[1:13]]
+            for fila in lector
+            if fila
+        ]
+
+    # Leer vector b conservando los decimales originales
+    with open(ruta_b, "r", encoding="utf-8-sig") as archivo:
+        lector = csv.reader(archivo)
+        next(lector)
+
+        datos_b = [
+            mp.mpf(fila[1].strip())
+            for fila in lector
+            if fila
+        ]
+
+    A = mp.matrix(datos_a)
+    b = mp.matrix(datos_b)
+
+    # Resolver con precision extendida
+    x_referencia = mp.lu_solve(A, b)
+
+    return x_referencia
