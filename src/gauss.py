@@ -116,3 +116,51 @@ def sustitucion_regresiva(A, b, contador=None):
         else:
             x[i] = (b[i] - suma) / A[i, i]
     return x
+
+def factorizacion_lu_pivoteo_escalado(A):
+    A = A.copy().astype(float)
+    n = A.shape[0]
+
+    L = np.eye(n)
+    U = A.copy()
+    P = np.eye(n)
+
+    escalas = np.max(np.abs(A), axis=1)
+
+    for k in range(n - 1):
+        ratios = np.abs(U[k:, k]) / escalas[k:]
+        fila_pivote = k + np.argmax(ratios)
+        if fila_pivote != k:
+            U[[k, fila_pivote]] = U[[fila_pivote, k]]
+            P[[k, fila_pivote]] = P[[fila_pivote, k]]
+            escalas[[k, fila_pivote]] = escalas[[fila_pivote, k]]
+            if k > 0:
+                L[[k, fila_pivote], :k] = L[[fila_pivote, k], :k]
+        pivote = U[k, k]
+        if pivote == 0:
+            raise ValueError("Pivote nulo: no se puede continuar")
+        for i in range(k + 1, n):
+            m = U[i, k] / pivote
+            L[i, k] = m
+            for j in range(k + 1, n):
+                U[i, j] -= m * U[k, j]
+            U[i, k] = 0
+    if U[n - 1, n - 1] == 0:
+        raise ValueError("La matriz es singular")
+    return P, L, U
+
+def sustitucion_progresiva(L, b):
+    n = len(b)
+    y = np.zeros(n)
+    for i in range(n):
+        suma = 0
+        for j in range(i):
+            suma += L[i, j] * y[j]
+        y[i] = (b[i] - suma) / L[i, i]
+    return y
+
+def resolver_con_lu(P, L, U, b):
+    b_permutado = P @ b
+    y = sustitucion_progresiva(L, b_permutado)
+    x = sustitucion_regresiva(U, y)
+    return x
