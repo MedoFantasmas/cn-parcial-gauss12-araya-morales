@@ -3,7 +3,7 @@
 ## 1. Identificación:
 **Estudiantes:** Felipe Araya Díaz y Mariana Morales Muñoz  
 **Asignatura:** Computación Numérica  
-**Fecha de entrega:** 21-11-2026  
+**Fecha de entrega:** 20-11-2026  
 **Enlace al repositorio:** https://github.com/MedoFantasmas/cn-parcial-gauss12-araya-morales
 
 

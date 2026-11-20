@@ -5,6 +5,12 @@ def eliminacion_gaussiana_sin_pivoteo(A, b, contador=None):
     b = b.copy().astype(float)
     n = len(b)
 
+    multiplicador_maximo = 0.0
+
+    # Valor maximo de la matriz original
+    maximo_inicial = np.max(np.abs(A))
+    maximo_proceso = maximo_inicial
+
     for k in range(n - 1):
         pivote = A[k, k]
         paso = k + 1
@@ -14,6 +20,10 @@ def eliminacion_gaussiana_sin_pivoteo(A, b, contador=None):
                 m = contador.dividir(A[i, k], pivote, paso)
             else:
                 m = A[i, k] / pivote
+            # Registrar multiplicador maximo
+            multiplicador_maximo = max(
+                multiplicador_maximo, abs(m)
+            )
             # Actualizar matriz
             for j in range(k + 1, n):
                 if contador is not None:
@@ -36,15 +46,25 @@ def eliminacion_gaussiana_sin_pivoteo(A, b, contador=None):
             else:
                 b[i] = b[i] - m * b[k]
             A[i, k] = 0
-    return A, b
+        # Registrar el maximo despues de cada etapa
+        maximo_proceso = max(
+            maximo_proceso,
+            np.max(np.abs(A))
+        )
+    factor_crecimiento = maximo_proceso / maximo_inicial
+    return A, b, multiplicador_maximo, factor_crecimiento
 
 
-def eliminacion_gaussiana_con_pivoteo(A, b, contador=None):
+def eliminacion_gaussiana_con_pivoteo(A, b, contador=None, traza=None):
     A = A.copy().astype(float)
     b = b.copy().astype(float)
     n = len(b)
 
     escalas = np.max(np.abs(A), axis=1)
+
+    multiplicador_maximo = 0.0
+    maximo_inicial = np.max(np.abs(A))
+    maximo_proceso = maximo_inicial
 
     for k in range(n - 1):
         paso = k + 1
@@ -56,6 +76,13 @@ def eliminacion_gaussiana_con_pivoteo(A, b, contador=None):
                 divisiones=n-k,
                 comparaciones=n-k-1
             )
+        # Registrar seleccion del pivote
+        if traza is not None:
+            traza.append({
+                "paso": paso,
+                "fila_pivote": int(fila_pivote + 1),
+                "intercambio": bool(fila_pivote != k)
+            })
         # Intercambiar filas
         if fila_pivote != k:
             if contador is not None:
@@ -65,10 +92,16 @@ def eliminacion_gaussiana_con_pivoteo(A, b, contador=None):
             escalas[[k, fila_pivote]] = escalas[[fila_pivote, k]]
         pivote = A[k, k]
         for i in range(k + 1, n):
+            # Calcular multiplicador
             if contador is not None:
                 m = contador.dividir(A[i, k], pivote, paso)
             else:
                 m = A[i, k] / pivote
+            # Registrar multiplicador maximo
+            multiplicador_maximo = max(
+                multiplicador_maximo, abs(m)
+            )
+            # Actualizar matriz
             for j in range(k + 1, n):
                 if contador is not None:
                     producto = contador.multiplicar(
@@ -79,6 +112,7 @@ def eliminacion_gaussiana_con_pivoteo(A, b, contador=None):
                     )
                 else:
                     A[i, j] = A[i, j] - m * A[k, j]
+            # Actualizar vector b
             if contador is not None:
                 producto = contador.multiplicar(
                     m, b[k], paso
@@ -89,7 +123,19 @@ def eliminacion_gaussiana_con_pivoteo(A, b, contador=None):
             else:
                 b[i] = b[i] - m * b[k]
             A[i, k] = 0
-    return A, b
+        # Registrar el maximo al finalizar cada etapa
+        maximo_proceso = max(
+            maximo_proceso,
+            np.max(np.abs(A))
+        )
+        # Guardar estado del sistema al finalizar la etapa
+        if traza is not None:
+            traza[-1]["pivote"] = float(pivote)
+            traza[-1]["matriz"] = A.copy()
+            traza[-1]["vector"] = b.copy()
+    # Calcular factor de crecimiento
+    factor_crecimiento = maximo_proceso / maximo_inicial
+    return A, b, multiplicador_maximo, factor_crecimiento
 
 def sustitucion_regresiva(A, b, contador=None):
     n = len(b)
