@@ -17,10 +17,10 @@ Reduccion del residuo: 4.702264
 Error relativo refinado: 5.683708196791448e-14
 
 CONDICIONAMIENTO
-Numero de condicion infinito: 5.3678271204493359e+13
+Numero de condicion infinito: 5.3678271204522344e+13
 Error hacia atras: 7.6244495476740282e-18
-Cota de error hacia adelante: 4.0943483888402385e-04
+Cota de error hacia adelante: 4.0943483888424503e-04
 
 COMPARACION CON NUMPY
-Diferencia maxima: 1.0369483049998962e-12
-Error relativo NumPy: 3.075017993903409e-13
+Diferencia maxima: 5.6332716269480443e-13
+Error relativo NumPy: 2.547659346458361e-13
