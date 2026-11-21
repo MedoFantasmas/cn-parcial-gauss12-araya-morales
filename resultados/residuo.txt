@@ -5,25 +5,22 @@ RESIDUO INICIAL
 Norma infinito: 6.9849193096160889e-10
 
 RESIDUO EN PRECISION EXTENDIDA
-Norma infinito: 1.1641532182693481e-09
+Norma infinito: 7.6304472762046274e-10
 
 REFINAMIENTO ITERATIVO
-Iteracion 1: residuo = 1.1641532182693481e-09, correccion = 5.2216973946028733e-13
-Iteracion 2: residuo = 4.6566128730773926e-10, correccion = 1.9360847791336675e-15
-Iteracion 3: residuo = 1.1641532182693481e-10, correccion = 3.4519463002905558e-13
-Iteracion 4: residuo = 1.1641532182693481e-10, correccion = 3.1290968330291889e-13
-Iteracion 5: residuo = 1.1641532182693481e-10, correccion = 8.1887312177342919e-16
+Iteracion 1: residuo = 7.6304472762046274e-10, correccion = 5.0901212054109733e-13
+Iteracion 2: residuo = 1.6227175981276323e-10, correccion = 1.8377100368040099e-16
 
 RESULTADO FINAL
-Residuo refinado: 4.6566128730773926e-10
-Reduccion del residuo: 2.500000
-Error relativo refinado: 4.021948416720605e-14
+Residuo refinado: 1.6227175981276323e-10
+Reduccion del residuo: 4.702264
+Error relativo refinado: 5.683708196791448e-14
 
 CONDICIONAMIENTO
 Numero de condicion infinito: 5.3678271204493359e+13
-Error hacia atras: 2.1879413863998272e-17
-Cota de error hacia adelante: 1.1744491111870513e-03
+Error hacia atras: 7.6244495476740282e-18
+Cota de error hacia adelante: 4.0943483888402385e-04
 
 COMPARACION CON NUMPY
-Diferencia maxima: 9.8965280415086454e-13
+Diferencia maxima: 1.0369483049998962e-12
 Error relativo NumPy: 3.075017993903409e-13

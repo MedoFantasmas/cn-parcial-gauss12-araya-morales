@@ -1,1 +1,2 @@
-# dependencias con versión fija
+numpy==1.26.4
+mpmath==1.4.1

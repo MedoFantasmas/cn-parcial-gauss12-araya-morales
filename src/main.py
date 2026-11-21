@@ -1,4 +1,3 @@
-# punto de entrada único que reproduce todo
 import os
 import numpy as np
 import csv
@@ -22,7 +21,6 @@ def cargar_datos():
     carpeta_proyecto = os.path.dirname(carpeta_src)
     ruta_csv_a = os.path.join(carpeta_proyecto, "datos", "matriz_a.csv")
     ruta_csv_b = os.path.join(carpeta_proyecto, "datos", "vector_b.csv")
-
     mat_a = np.genfromtxt(
         ruta_csv_a, delimiter=",", skip_header=1,
         usecols=range(1, 13), dtype=float
@@ -31,8 +29,59 @@ def cargar_datos():
         ruta_csv_b, delimiter=",", skip_header=1,
         usecols=1, dtype=float
     )
+    if mat_a.shape != (12, 12):
+        raise ValueError(
+            "La matriz A debe tener dimensiones 12x12"
+        )
+    if vec_b.shape != (12,):
+        raise ValueError(
+            "El vector b debe contener 12 elementos"
+        )  
+        
+    if not np.all(np.isfinite(mat_a)):
+        raise ValueError("La matriz A contiene valores no validos")
 
+    if not np.all(np.isfinite(vec_b)):
+        raise ValueError("El vector b contiene valores no validos")
+    
     return mat_a, vec_b
+
+
+def calcular_error_relativo(x, x_referencia):
+    with mp.workdps(80):
+        norma_referencia = max(
+            abs(valor) for valor in x_referencia
+        )
+
+        error = max(
+            abs(mp.mpf(float(x[i])) - x_referencia[i])
+            for i in range(len(x))
+        )
+
+        if norma_referencia == 0:
+            return error
+
+        return error / norma_referencia
+
+
+def calcular_cifras_significativas(aproximacion, referencia):
+    with mp.workdps(80):
+        aproximacion = mp.mpf(float(aproximacion))
+
+        if referencia == 0:
+            return abs(aproximacion), 0
+
+        error = abs(aproximacion - referencia) / abs(referencia)
+
+        if error == 0:
+            return error, 16
+
+        digitos = max(
+            0,
+            int(mp.floor(-mp.log10(2 * error)))
+        )
+
+        return error, min(digitos, 16)
 
 
 if __name__ == "__main__":
@@ -139,19 +188,8 @@ if __name__ == "__main__":
         print(f"x{i+1} = {mp.nstr(x_referencia[i], 25)}")
 
     # Comparar ambas soluciones con la referencia
-    norma_referencia = max(
-        abs(valor) for valor in x_referencia
-    )
-
-    error_sin = max(
-        abs(mp.mpf(float(x_sin[i])) - x_referencia[i])
-        for i in range(len(x_sin))
-    ) / norma_referencia
-
-    error_con = max(
-        abs(mp.mpf(float(x[i])) - x_referencia[i])
-        for i in range(len(x))
-    ) / norma_referencia
+    error_sin = calcular_error_relativo(x_sin, x_referencia)
+    error_con = calcular_error_relativo(x, x_referencia)
 
     print("\nERROR RELATIVO SIN PIVOTEO:")
     print(mp.nstr(error_sin, 16))
@@ -163,24 +201,9 @@ if __name__ == "__main__":
     print("\nCIFRAS SIGNIFICATIVAS POR INCOGNITA:")
 
     for i in range(len(x)):
-        referencia = x_referencia[i]
-        aproximacion = mp.mpf(float(x[i]))
-
-        if referencia != 0:
-            error_individual = abs(
-                aproximacion - referencia
-            ) / abs(referencia)
-
-            if error_individual == 0:
-                digitos = 16
-            else:
-                digitos = max(
-                    0,
-                    int(mp.floor(-mp.log10(2 * error_individual)))
-                )
-        else:
-            error_individual = abs(aproximacion)
-            digitos = 0
+        error_individual, digitos = calcular_cifras_significativas(
+            x[i], x_referencia[i]
+        )
 
         print(
             f"x{i+1}: "
@@ -279,10 +302,7 @@ if __name__ == "__main__":
     print("\nSOLUCION REFINADA:")
     print(x_refinada)
     
-    error_refinado = max(
-        abs(mp.mpf(float(x_refinada[i])) - x_referencia[i])
-        for i in range(len(x_refinada))
-    ) / norma_referencia
+    error_refinado = calcular_error_relativo(x_refinada, x_referencia)
 
     print("\nERROR RELATIVO DE LA SOLUCION REFINADA:")
     print(mp.nstr(error_refinado, 16))
@@ -294,10 +314,7 @@ if __name__ == "__main__":
         np.abs(x_refinada - x_numpy)
     )
 
-    error_numpy = max(
-        abs(mp.mpf(float(x_numpy[i])) - x_referencia[i])
-        for i in range(len(x_numpy))
-    ) / norma_referencia
+    error_numpy = calcular_error_relativo(x_numpy, x_referencia)
 
     print("\nSOLUCION NUMPY:")
     print(x_numpy)
@@ -323,9 +340,9 @@ if __name__ == "__main__":
     print("\nREDUCCION DEL RESIDUO:")
 
     if norma_final != 0:
-        reduccion = float(
-            historial[0]["norma_residuo"] / norma_final
-        )
+        reduccion = float(norma_ext / norma_final)
+    elif norma_ext == 0:
+        reduccion = 1.0
     else:
         reduccion = float("inf")
 
@@ -346,8 +363,18 @@ if __name__ == "__main__":
     print("\nERROR HACIA ATRAS RELATIVO:")
     print(error_atras)
 
-    print("\nCOTA DE ERROR HACIA ADELANTE:")
-    print(condicion * error_atras)
+    producto_condicion_error = condicion * error_atras
+
+    if producto_condicion_error < 1:
+        cota_error_adelante = (
+            producto_condicion_error /
+            (1 - producto_condicion_error)
+        )
+    else:
+        cota_error_adelante = float("inf")
+
+    print("\nCOTA RELATIVA DE ERROR HACIA ADELANTE:")
+    print(cota_error_adelante)
 
 
     # Generar reporte de conteo de FLOPs
@@ -398,17 +425,45 @@ if __name__ == "__main__":
             "El calculo inicial de las escalas de fila "
             "no esta incluido en este conteo.\n\n"
         )
+        
+        archivo.write(
+        "El conteo corresponde a las operaciones aritmeticas "
+        "registradas durante la eliminacion y sustitucion. "
+        "No representa el costo computacional total del programa.\n\n"
+        )
+        
         archivo.write("## FLOPs por etapa de eliminacion\n\n")
         archivo.write(
-            "| Paso | Sin pivoteo | Con pivoteo |\n"
+            "| Paso | Sin pivoteo Mult./Div. | Sin pivoteo Sumas/Restas | "
+            "Sin pivoteo Total | Con pivoteo Mult./Div. | "
+            "Con pivoteo Sumas/Restas | Con pivoteo Total |\n"
         )
-        archivo.write("|---|---:|---:|\n")
+        archivo.write("|---|---:|---:|---:|---:|---:|---:|\n")
+        desglose_sin = contador.obtener_desglose()
+        desglose_con = contador_pivoteo.obtener_desglose()
+        total_mult_div_sin = 0
+        total_sum_rest_sin = 0
+        total_mult_div_con = 0
+        total_sum_rest_con = 0
         for paso in range(1, len(vec_b)):
-            sin = sum(contador.conteo[paso].values())
-            con = sum(contador_pivoteo.conteo[paso].values())
+            sin = desglose_sin[paso]
+            con = desglose_con[paso]
+            total_mult_div_sin += sin["mult_div"]
+            total_sum_rest_sin += sin["sum_rest"]
+            total_mult_div_con += con["mult_div"]
+            total_sum_rest_con += con["sum_rest"]
             archivo.write(
-                f"| {paso} | {sin} | {con} |\n"
+                f"| {paso} "
+                f"| {sin['mult_div']} | {sin['sum_rest']} | {sin['total']} "
+                f"| {con['mult_div']} | {con['sum_rest']} | {con['total']} |\n"
             )
+        archivo.write(
+            f"| **Total** "
+            f"| **{total_mult_div_sin}** | **{total_sum_rest_sin}** "
+            f"| **{total_mult_div_sin + total_sum_rest_sin}** "
+            f"| **{total_mult_div_con}** | **{total_sum_rest_con}** "
+            f"| **{total_mult_div_con + total_sum_rest_con}** |\n"
+        )
 
     print("\nReporte generado:", ruta_reporte)
 
@@ -426,23 +481,16 @@ if __name__ == "__main__":
             "con_pivoteo",
             "refinada",
             "referencia",
-            "error_relativo",
-            "digitos_significativos"
+            "error_relativo_con_pivoteo",
+            "digitos_significativos_con_pivoteo"
         ])
 
         for i in range(len(x)):
             referencia = x_referencia[i]
-            error_individual = abs(
-                mp.mpf(float(x[i])) - referencia
-            ) / abs(referencia)
 
-            if error_individual == 0:
-                digitos = 16
-            else:
-                digitos = max(
-                    0,
-                    int(mp.floor(-mp.log10(2 * error_individual)))
-                )
+            error_individual, digitos = calcular_cifras_significativas(
+                x[i], referencia
+            )
 
             escritor.writerow([
                 f"x{i+1}",
@@ -494,7 +542,7 @@ if __name__ == "__main__":
         archivo.write(f"Error hacia atras: {error_atras:.16e}\n")
         archivo.write(
             f"Cota de error hacia adelante: "
-            f"{condicion * error_atras:.16e}\n\n"
+            f"{cota_error_adelante:.16e}\n\n"
         )
 
         archivo.write("COMPARACION CON NUMPY\n")

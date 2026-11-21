@@ -35,6 +35,29 @@ class ContadorFlops:
     def restar(self, a, b, paso):
         self.registrar(paso, "restas")
         return a - b
+    
+    
+    def obtener_desglose(self):
+        desglose = {}
+
+        for paso, operaciones in self.conteo.items():
+            mult_div = (
+                operaciones["multiplicaciones"]
+                + operaciones["divisiones"]
+            )
+
+            sum_rest = (
+                operaciones["sumas"]
+                + operaciones["restas"]
+            )
+
+            desglose[paso] = {
+                "mult_div": mult_div,
+                "sum_rest": sum_rest,
+                "total": mult_div + sum_rest
+            }
+
+        return desglose
 
     def mostrar_conteo(self):
         for paso, operaciones in self.conteo.items():
@@ -49,7 +72,7 @@ class ContadorFlops:
             print(f"Total: {total} FLOPs")
 
     def registrar_pivoteo(self, divisiones=0, comparaciones=0,
-                      intercambios=0):
+                    intercambios=0):
         self.costo_pivoteo["divisiones"] += divisiones
         self.costo_pivoteo["comparaciones"] += comparaciones
         self.costo_pivoteo["intercambios"] += intercambios
@@ -83,3 +106,6 @@ if __name__ == "__main__":
     print("Nuevo b2:", b2)
 
     contador.mostrar_conteo()
+    
+    print("\nDESGLOSE DE OPERACIONES")
+    print(contador.obtener_desglose())
